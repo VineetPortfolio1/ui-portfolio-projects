@@ -1,0 +1,207 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project Cards</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a clean project index. Page header, one toolbar row (search, category chips, result count), then two groups: client sites and concept designs. Each card is a browser-window thumbnail (neutral wireframe, one accent) above name, category, domain and two actions. */
+:root {
+  --bg: #f6f7f9;
+  --surface: #ffffff;
+  --ink: #131a24;
+  --muted: #5b6676;
+  --line: #dde2ea;
+  --brand: #1f4fd1;
+  --brand-ink: #ffffff;
+  --wf-bg: #f1f4f8;
+  --wf-block: #dbe2ee;
+  --wf-line: #c4cddc;
+  --mesh1: #dbe6ff;
+  --mesh2: #f0e2ff;
+  --mesh3: #ffe9d6;
+  --tl1: 91%; --tl2: 82%; --ts: 85%;
+  --font: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0d1218; --surface: #151c25; --ink: #e8edf3; --muted: #9aa6b6; --line: #27313e;
+    --brand: #7ca2ff; --brand-ink: #0a1020; --wf-bg: #1b2430; --wf-block: #26344a; --wf-line: #35455e; --mesh1: #142347; --mesh2: #261640; --mesh3: #36210f; --tl1: 22%; --tl2: 15%; --ts: 55%;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0d1218; --surface: #151c25; --ink: #e8edf3; --muted: #9aa6b6; --line: #27313e;
+  --brand: #7ca2ff; --brand-ink: #0a1020; --wf-bg: #1b2430; --wf-block: #26344a; --wf-line: #35455e; --mesh1: #142347; --mesh2: #261640; --mesh3: #36210f; --tl1: 22%; --tl2: 15%; --ts: 55%;
+    color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: radial-gradient(900px 460px at 8% -8%, var(--mesh1), transparent 62%), radial-gradient(800px 420px at 100% 0%, var(--mesh2), transparent 58%), radial-gradient(900px 500px at 50% 100%, var(--mesh3), transparent 60%), var(--bg); background-attachment: fixed; color: var(--ink); font-family: var(--font); font-size: 15px; line-height: 1.55; margin: 0;
+  padding-block: 48px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.wrap { max-width: 1120px; margin: 0 auto; display: flex; flex-direction: column; gap: 32px; }
+a:focus-visible, button:focus-visible, input:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+header { display: flex; flex-direction: column; gap: 8px; max-width: 64ch; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin: 0; }
+h1 { font-weight: 600; font-size: clamp(30px, 4.4vw, 42px); line-height: 1.1; letter-spacing: -0.02em; margin: 0; text-wrap: balance; }
+.lede { margin: 0; color: var(--muted); font-size: 16.5px; }
+.toolbar { display: flex; flex-wrap: wrap; gap: 12px 16px; align-items: center; justify-content: space-between; padding-block: 14px; border-block: 1px solid var(--line); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { font: inherit; font-size: 14px; font-weight: 500; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+.chip:hover { border-color: var(--muted); }
+.chip[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.tools { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+input[type="search"] { font: inherit; font-size: 14.5px; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 6px; padding: 8px 12px; width: min(100%, 240px); }
+.count { font-family: var(--mono); font-size: 12.5px; color: var(--muted); white-space: nowrap; }
+.group { display: flex; flex-direction: column; gap: 16px; }
+.group[hidden] { display: none; }
+.group h2 { margin: 0; font-size: 19px; font-weight: 600; display: flex; align-items: baseline; gap: 10px; }
+.group h2 span { font-family: var(--mono); font-size: 12.5px; font-weight: 400; color: var(--muted); }
+.group > p { margin: -8px 0 0; color: var(--muted); max-width: 70ch; }
+.grid { display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr)); }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; display: flex; flex-direction: column; min-width: 0; transition: border-color 0.15s ease, box-shadow 0.15s ease; }
+.card:hover { border-color: var(--muted); box-shadow: 0 6px 20px rgba(19,26,36,0.08); }
+.card[hidden] { display: none; }
+.thumb { background: var(--wf-bg); border-bottom: 1px solid var(--line); padding: 14px 14px 0; }
+.win { background: var(--surface); border: 1px solid var(--line); border-bottom: 0; border-radius: 6px 6px 0 0; overflow: hidden; }
+.win-bar { display: flex; align-items: center; gap: 5px; padding: 7px 10px; border-bottom: 1px solid var(--line); background: var(--wf-bg); }
+.win-bar i { width: 7px; height: 7px; border-radius: 50%; background: var(--wf-line); display: inline-block; flex: none; }
+.win-bar span { margin-left: 6px; font-family: var(--mono); font-size: 10.5px; color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 4px; padding: 1px 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; }
+.win svg { display: block; width: 100%; height: auto; max-width: 100%; }
+.info { padding: 16px 18px 18px; display: flex; flex-direction: column; gap: 10px; flex: 1; min-width: 0; }
+.row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+.tag { font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.tag.concept { color: var(--brand); }
+h3 { margin: 0; font-size: 18px; font-weight: 600; line-height: 1.25; letter-spacing: -0.01em; text-wrap: balance; }
+.domain { margin: 0; font-family: var(--mono); font-size: 12.5px; color: var(--muted); overflow-wrap: anywhere; }
+.actions { margin-top: auto; padding-top: 6px; display: flex; gap: 8px; flex-wrap: wrap; }
+.visit { font-size: 14px; font-weight: 600; text-decoration: none; color: var(--brand-ink); background: var(--brand); border-radius: 6px; padding: 8px 14px; }
+.visit:hover { filter: brightness(1.1); }
+.copy { font: inherit; font-size: 14px; font-weight: 500; color: var(--ink); background: transparent; border: 1px solid var(--line); border-radius: 6px; padding: 7px 12px; cursor: pointer; }
+.copy:hover { border-color: var(--muted); }
+.empty { color: var(--muted); padding: 24px 0; }
+@media (prefers-reduced-motion: reduce) { .card { transition: none; } }
+
+h1 { background: linear-gradient(100deg, var(--ink) 0%, hsl(238 70% 48%) 60%, hsl(280 65% 52%) 100%); -webkit-background-clip: text; background-clip: text; color: transparent; display: inline-block; }
+.thumb { background: linear-gradient(145deg, hsl(var(--h) var(--ts) var(--tl1)) 0%, hsl(calc(var(--h) + 34) var(--ts) var(--tl2)) 100%); }
+.visit { background: linear-gradient(135deg, hsl(var(--h) 76% 40%), hsl(calc(var(--h) + 28) 78% 50%)); color: #fff; }
+.tag { color: hsl(var(--h) 55% 38%); font-weight: 500; }
+.card:hover { box-shadow: 0 10px 28px hsl(var(--h) 60% 40% / 0.22); border-color: hsl(var(--h) 55% 55%); }
+.chip[aria-pressed="true"] { background: linear-gradient(135deg, hsl(238 70% 45%), hsl(280 65% 50%)); border-color: transparent; color: #fff; }
+.group h2 { background: none; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .tag { color: hsl(var(--h) 75% 72%); } :root:not([data-theme="light"]) h1 { background: linear-gradient(100deg, #fff 0%, hsl(225 100% 78%) 55%, hsl(285 90% 78%) 100%); -webkit-background-clip: text; background-clip: text; } }
+:root[data-theme="dark"] .tag { color: hsl(var(--h) 75% 72%); }
+:root[data-theme="dark"] h1 { background: linear-gradient(100deg, #fff 0%, hsl(225 100% 78%) 55%, hsl(285 90% 78%) 100%); -webkit-background-clip: text; background-clip: text; }
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Senior UI developer · Selected work</p>
+    <h1>Projects</h1>
+    <p class="lede">Twelve live websites built for clients in events, hospitality, legal, medical and accounting, followed by three concept designs.</p>
+  </header>
+
+  <div class="toolbar">
+    <div class="chips" id="chips" role="group" aria-label="Filter by category"></div>
+    <div class="tools">
+      <input type="search" id="q" placeholder="Search projects" aria-label="Search projects" autocomplete="off">
+      <span class="count" id="count" aria-live="polite"></span>
+    </div>
+  </div>
+
+  <section class="group" id="gClient" aria-labelledby="hClient">
+    <h2 id="hClient">Client websites <span id="nClient"></span></h2>
+    <div class="grid" id="client"></div>
+  </section>
+
+  <section class="group" id="gConcept" aria-labelledby="hConcept">
+    <h2 id="hConcept">Concept designs <span id="nConcept"></span></h2>
+    <p>Fictional brands designed to show approach and interaction. Nothing on them can be ordered or sent.</p>
+    <div class="grid" id="concept"></div>
+  </section>
+
+  <div class="empty" id="empty" hidden>No projects match. Clear the search or choose another category.</div>
+</div>
+
+<script>
+var projects = [
+  { name: "Longevity Wellness Expo", domain: "longevitywellnessexpo.com", tag: "Event" },
+  { name: "Cowboys Grill", domain: "cowboysgrill.ca", tag: "Restaurant" },
+  { name: "Arbitration Place", domain: "arbitrationplace.com", tag: "Legal" },
+  { name: "Trimed Integrative Psychiatry", domain: "trimed-integrative-psychiatry.webware.io", tag: "Medical" },
+  { name: "Nouriel OBGYN", domain: "nourielobgyn.com", tag: "Medical" },
+  { name: "Clockwork Accounting & Financial", domain: "clockwork-accounting-financial.webware.io", tag: "Accounting" },
+  { name: "Class Actions", domain: "classactions.us", tag: "Legal" },
+  { name: "SFL Catering", domain: "sflcatering.com", tag: "Food" },
+  { name: "Just Let Me Do It", domain: "justletmedoit.com", tag: "Other" },
+  { name: "FaaS Cloud", domain: "faascloud.co", tag: "Other" },
+  { name: "Claudia Hehr", domain: "claudia-hehr1.webware.io", tag: "Other" },
+  { name: "Vesretta", domain: "vesretta.com", tag: "Other" },
+  { name: "Tamarind Lane Coffee", domain: "Coffee roaster · e-commerce", tag: "Concept", url: "tamarind-lane.html" },
+  { name: "Ledgerline", domain: "Invoicing SaaS · marketing site", tag: "Concept", url: "ledgerline.html" },
+  { name: "Hollis Rao Architects", domain: "Architecture studio · portfolio", tag: "Concept", url: "hollis-rao.html" }
+];
+var A = "hsl(var(--h) 78% 46%)", B = "var(--wf-block)", L = "var(--wf-line)", S = "var(--surface)";
+function r(x, y, w, h, f, rx) { return '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="' + (rx || 3) + '" fill="' + f + '"/>'; }
+var nav = r(0, 0, 320, 22, S) + '<line x1="0" x2="320" y1="22" y2="22" stroke="' + L + '"/>' + r(14, 8, 38, 6, B) + r(200, 9, 22, 4, L) + r(230, 9, 22, 4, L) + r(260, 9, 22, 4, L) + r(288, 6, 22, 10, A);
+var wires = [
+  nav + r(14, 44, 130, 9, B) + r(14, 60, 100, 9, B) + r(14, 80, 120, 4, L) + r(14, 89, 110, 4, L) + r(14, 104, 56, 14, A) + r(170, 36, 136, 100, B) + r(14, 146, 92, 40, B) + r(114, 146, 92, 40, B) + r(214, 146, 92, 40, B),
+  nav + r(0, 22, 320, 96, B, 0) + r(90, 50, 140, 9, S) + r(110, 66, 100, 4, S) + r(135, 82, 50, 14, A) + r(14, 130, 92, 56, B) + r(114, 130, 92, 56, B) + r(214, 130, 92, 56, B),
+  nav + r(14, 38, 150, 9, B) + r(14, 54, 110, 4, L) + r(14, 63, 130, 4, L) + r(14, 78, 48, 12, A) + r(14, 104, 92, 38, B) + r(114, 104, 92, 38, B) + r(214, 104, 92, 38, B) + r(14, 150, 92, 36, B) + r(114, 150, 92, 36, B) + r(214, 150, 92, 36, B),
+  nav + r(14, 40, 180, 11, B) + r(14, 58, 140, 11, B) + r(14, 82, 200, 4, L) + r(14, 91, 180, 4, L) + r(14, 108, 56, 14, A) + r(236, 40, 70, 82, B) + r(14, 140, 140, 46, B) + r(166, 140, 140, 46, B)
+];
+function wire(i) { return '<svg viewBox="0 0 320 196" aria-hidden="true" focusable="false">' + wires[i % 4] + '</svg>'; }
+
+var chipsEl = document.getElementById("chips"), q = document.getElementById("q"), countEl = document.getElementById("count");
+var active = "All", cards = [];
+function build(list, mountId, offset) {
+  var mount = document.getElementById(mountId);
+  list.forEach(function (p, i) {
+    var concept = p.tag === "Concept";
+    var el = document.createElement("article"); el.className = "card"; el.style.setProperty("--h", String(HUES[p.tag] || 220));
+    el.innerHTML = '<div class="thumb"><div class="win"><div class="win-bar"><i></i><i></i><i></i><span></span></div>' + wire(i + offset) + '</div></div>' +
+      '<div class="info"><div class="row"><span class="tag"></span></div><h3></h3><p class="domain"></p><div class="actions"><a class="visit" target="_blank" rel="noopener"></a><button class="copy" type="button">Copy link</button></div></div>';
+    el.querySelector(".win-bar span").textContent = concept ? "concept design" : p.domain;
+    var tag = el.querySelector(".tag"); tag.textContent = p.tag; if (concept) tag.className = "tag concept";
+    el.querySelector("h3").textContent = p.name;
+    el.querySelector(".domain").textContent = p.domain;
+    var url = p.url || ("https://" + p.domain);
+    var a = el.querySelector(".visit"); a.href = url; a.textContent = concept ? "View concept" : "Visit site";
+    a.setAttribute("aria-label", (concept ? "View concept " : "Visit ") + p.name + " (opens in a new tab)");
+    var b = el.querySelector(".copy");
+    b.addEventListener("click", function () {
+      var ok = function () { b.textContent = "Copied"; setTimeout(function () { b.textContent = "Copy link"; }, 1400); };
+      try { navigator.clipboard.writeText(url).then(ok, function () { b.textContent = "Copy failed"; }); } catch (e) { b.textContent = "Copy failed"; }
+    });
+    mount.appendChild(el); cards.push({ el: el, p: p });
+  });
+}
+var HUES = { Event: 282, Restaurant: 28, Legal: 222, Medical: 172, Accounting: 142, Food: 8, Other: 205, Concept: 256 };
+var client = projects.filter(function (p) { return p.tag !== "Concept"; });
+var concept = projects.filter(function (p) { return p.tag === "Concept"; });
+build(client, "client", 0); build(concept, "concept", 1);
+
+var tags = ["All"]; projects.forEach(function (p) { if (tags.indexOf(p.tag) < 0) tags.push(p.tag); });
+tags.forEach(function (t) {
+  var b = document.createElement("button"); b.type = "button"; b.className = "chip"; b.textContent = t; b.setAttribute("aria-pressed", String(t === "All"));
+  b.addEventListener("click", function () { active = t; Array.prototype.forEach.call(chipsEl.children, function (c) { c.setAttribute("aria-pressed", String(c === b)); }); apply(); });
+  chipsEl.appendChild(b);
+});
+function apply() {
+  var term = q.value.trim().toLowerCase(), nC = 0, nK = 0;
+  cards.forEach(function (c) {
+    var ok = (active === "All" || c.p.tag === active) && (!term || c.p.name.toLowerCase().indexOf(term) >= 0 || c.p.domain.toLowerCase().indexOf(term) >= 0);
+    c.el.hidden = !ok;
+    if (ok) { if (c.p.tag === "Concept") nK++; else nC++; }
+  });
+  document.getElementById("nClient").textContent = nC; document.getElementById("nConcept").textContent = nK;
+  document.getElementById("gClient").hidden = nC === 0; document.getElementById("gConcept").hidden = nK === 0;
+  document.getElementById("empty").hidden = nC + nK !== 0;
+  countEl.textContent = (nC + nK) + " of " + projects.length;
+}
+q.addEventListener("input", apply);
+apply();
+</script>
